@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stylized Match Game</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1e1e1e;
+      --primary-hover: #0f0f10;
+      --bg-selected: #eff6ff;
+      --success: #22c55e;
+      --success-bg: #dcfce7;
+      --border: #e5e7eb;
+      --text: #1f2937;
+    }
+
+    :root { color-scheme: light dark; }
+    html, body { background: transparent !important; }
+
+    @media (prefers-color-scheme: dark) {
+      :root { --text: #f3f4f6; }
+      .card { color: #1f2937; }
+    }
+
+    body {
+      font-family: 'Figtree', system-ui, -apple-system, sans-serif;
+      background: #fffced !important;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      color: var(--text);
+    }
+
+    #app { width: 100%; max-width: 640px; }
+    .step[hidden], [hidden] { display: none !important; }
+
+    .tally-mount { position: relative; }
+    .tally-mount iframe { display: block; width: 100%; border: 0; }
+    .tally-mount.is-loading iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 24px 0;
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .actions { margin-top: 24px; display: flex; justify-content: flex-start; }
+    .btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+    }
+    .btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .question {
+      margin: 0 0 20px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .game-container {
+      display: flex;
+      gap: 32px;
+      width: 100%;
+      max-width: 600px;
+      justify-content: flex-start;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .card {
+      padding: 16px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      font-weight: 500;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .card:hover:not(.matched) {
+      border-color: #9ca3af;
+      transform: translateY(-1px);
+    }
+
+    .card.selected {
+      border-color: var(--primary);
+      background: var(--bg-selected);
+      color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .card.matched {
+      background: var(--success-bg);
+      border-color: var(--success);
+      color: #166534;
+      cursor: default;
+      transform: none;
+      animation: pop 0.3s ease-out;
+    }
+
+    #status-msg {
+      margin-top: 24px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      text-align: left;
+      min-height: 24px;
+    }
+
+    .success-text { color: var(--success); }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <section id="step-a" class="step">
+      <div id="mount-a" class="tally-mount"></div>
+      <div class="actions">
+        <button id="next-a" class="btn" type="button">Next</button>
+      </div>
+    </section>
+
+    <section id="step-game" class="step" hidden>
+      <p id="question" class="question" hidden></p>
+
+      <div class="game-container">
+        <div class="column" id="left-col"></div>
+        <div class="column" id="right-col"></div>
+      </div>
+
+      <div id="status-msg"></div>
+
+      <div class="actions">
+        <button id="next-game" class="btn" type="button" disabled>Next</button>
+      </div>
+    </section>
+
+    <section id="step-b" class="step" hidden>
+      <div id="mount-b" class="tally-mount"></div>
+    </section>
+
+  </div>
+
+  <script>
+    const FORM_A_ID = "LZQlZv";
+    const FORM_B_ID = "LZQlZv";
+
+    const defaultPairs = [
+      { left: "Apple",  right: "Red Fruit" },
+      { left: "Banana", right: "Yellow Fruit" },
+      { left: "Sky",    right: "Blue Atmosphere" },
+      { left: "Fire",   right: "Hot Flame" }
+    ];
+
+    const STEPS = ['step-a', 'step-game', 'step-b'];
+
+    const params = new URLSearchParams(window.location.search);
+
+    const requestedPage = parseInt(params.get('page'), 10);
+    const startPage = [1, 2, 3].includes(requestedPage) ? requestedPage : 1;
+
+    const respondentId = (params.get('respondentId') || '').trim() || (
+      (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(16).slice(2)
+    );
+
+    function tallyUrl(id, hidden) {
+      const all = Object.assign(
+        { alignLeft: '1', hideTitle: '1', transparentBackground: '1', dynamicHeight: '1' },
+        hidden
+      );
+      const qs = Object.keys(all)
+        .filter(k => all[k] !== undefined && all[k] !== '')
+        .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(all[k])}`)
+        .join('&');
+      return `https://tally.so/embed/${id}?${qs}`;
+    }
+
+    function loadTallyEmbeds() {
+      const run = () => {
+        if (window.Tally) {
+          Tally.loadEmbeds();
+        } else {
+          document.querySelectorAll('iframe[data-tally-src]:not([src])')
+            .forEach(f => { f.src = f.dataset.tallySrc; });
+        }
+      };
+      if (window.Tally) return run();
+
+      let s = document.querySelector('script[data-tally-embed]');
+      if (!s) {
+        s = document.createElement('script');
+        s.src = 'https://tally.so/widgets/embed.js';
+        s.dataset.tallyEmbed = '1';
+        document.body.appendChild(s);
+      }
+      s.addEventListener('load', run);
+      s.addEventListener('error', run);
+    }
+
+    function mountTally(mountId, formId, hidden, title) {
+      const mount = document.getElementById(mountId);
+      const actions = mount.parentElement.querySelector('.actions');
+      mount.innerHTML = '';
+      mount.classList.add('is-loading');
+      if (actions) actions.hidden = true;
+
+      const loader = document.createElement('div');
+      loader.className = 'loader';
+      loader.innerHTML = '<div class="spinner"></div><span>Loading…</span>';
+      mount.appendChild(loader);
+
+      const f = document.createElement('iframe');
+      f.dataset.tallySrc = tallyUrl(formId, hidden);
+      f.title = title;
+      f.setAttribute('width', '100%');
+      f.setAttribute('height', '400');
+      f.setAttribute('frameborder', '0');
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        loader.remove();
+        mount.classList.remove('is-loading');
+        if (actions) actions.hidden = false;
+      };
+
+      f.addEventListener('load', () => {
+        if (!f.getAttribute('src')) return;
+        finish();
+      });
+      setTimeout(finish, 15000);
+
+      mount.appendChild(f);
+      loadTallyEmbeds();
+    }
+
+    function showStep(id) {
+      STEPS.forEach(s => {
+        document.getElementById(s).hidden = (s !== id);
+      });
+      window.scrollTo(0, 0);
+    }
+
+    function parsePairsFromQuery() {
+      const raw = params.get('pairs');
+      if (!raw) return defaultPairs;
+
+      const parsed = raw
+        .split(',')
+        .map(chunk => {
+          const idx = chunk.indexOf(':');
+          if (idx === -1) return null;
+          const left = chunk.slice(0, idx).trim();
+          const right = chunk.slice(idx + 1).trim();
+          return left && right ? { left, right } : null;
+        })
+        .filter(Boolean);
+
+      return parsed.length >= 2 ? parsed : defaultPairs;
+    }
+
+    const pairs = parsePairsFromQuery();
+    const questionText = (params.get('question') || '').trim();
+    let gameResult = '';
+
+    if (questionText) {
+      const q = document.getElementById('question');
+      q.textContent = questionText;
+      q.hidden = false;
+    }
+
+    let selectedLeft = null;
+    let selectedRight = null;
+    let matchesCount = 0;
+
+    function initGame() {
+      const leftCol = document.getElementById('left-col');
+      const rightCol = document.getElementById('right-col');
+
+      const shuffledLeft = [...pairs].sort(() => Math.random() - 0.5);
+      const shuffledRight = [...pairs].sort(() => Math.random() - 0.5);
+
+      shuffledLeft.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.textContent = p.left;
+        div.onclick = () => selectCard(div, 'left', p.left);
+        leftCol.appendChild(div);
+      });
+
+      shuffledRight.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.textContent = p.right;
+        div.onclick = () => selectCard(div, 'right', p.right);
+        rightCol.appendChild(div);
+      });
+    }
+
+    function selectCard(element, side, value) {
+      if (element.classList.contains('matched')) return;
+
+      const siblings = element.parentNode.querySelectorAll('.card');
+      siblings.forEach(s => s.classList.remove('selected'));
+      element.classList.add('selected');
+
+      if (side === 'left')  selectedLeft  = { element, value };
+      if (side === 'right') selectedRight = { element, value };
+
+      if (selectedLeft && selectedRight) {
+        const correctPair = pairs.find(
+          p => p.left === selectedLeft.value && p.right === selectedRight.value
+        );
+
+        if (correctPair) {
+          selectedLeft.element.className = 'card matched';
+          selectedRight.element.className = 'card matched';
+          matchesCount++;
+
+          if (matchesCount === pairs.length) {
+            handleGameCompletion();
+          }
+        } else {
+          const l = selectedLeft.element;
+          const r = selectedRight.element;
+          setTimeout(() => {
+            l.classList.remove('selected');
+            r.classList.remove('selected');
+          }, 350);
+        }
+
+        selectedLeft = null;
+        selectedRight = null;
+      }
+    }
+
+    function handleGameCompletion() {
+      gameResult = `Successfully matched all ${pairs.length} pairs.`;
+
+      const status = document.getElementById('status-msg');
+      status.className = 'success-text';
+      status.textContent = 'All matched! Press Next to continue.';
+
+      document.getElementById('next-game').disabled = false;
+    }
+
+    function goTo(page) {
+      if (page === 1) {
+        mountTally('mount-a', FORM_A_ID, { respondentId }, 'Form A');
+      }
+      if (page === 3) {
+        mountTally('mount-b', FORM_B_ID, {
+          respondentId,
+          gameResult,
+          question: questionText
+        }, 'Form B');
+      }
+      showStep(STEPS[page - 1]);
+    }
+
+    document.getElementById('next-a').addEventListener('click', () => goTo(2));
+    document.getElementById('next-game').addEventListener('click', () => goTo(3));
+
+    initGame();
+    goTo(startPage);
+  </script>
+</body>
+</html>
