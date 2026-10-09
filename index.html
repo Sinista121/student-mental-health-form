@@ -7,30 +7,26 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #1e1e1e;
-      --primary-hover: #0f0f10;
-      --bg-selected: #eff6ff;
+      color-scheme: light;
+      --bg: #fffced;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --primary: #1a1a1a;
+      --primary-hover: #333333;
+      --badge: #4a4a4a;
+      --border: #dcdcd6;
       --success: #22c55e;
       --success-bg: #dcfce7;
-      --border: #e5e7eb;
-      --text: #1f2937;
     }
 
-    :root { color-scheme: light dark; }
-    html, body { background: transparent !important; }
-
-    @media (prefers-color-scheme: dark) {
-      :root { --text: #f3f4f6; }
-      .card { color: #1f2937; }
-    }
+    html, body { background: var(--bg) !important; }
 
     body {
       font-family: 'Figtree', system-ui, -apple-system, sans-serif;
-      background: #fffced !important;
       margin: 0;
       padding: 16px;
       display: flex;
@@ -59,7 +55,7 @@
       gap: 12px;
       padding: 24px 0;
       font-weight: 600;
-      color: #6b7280;
+      color: var(--muted);
     }
     .spinner {
       width: 22px;
@@ -71,7 +67,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .actions { margin-top: 24px; display: flex; justify-content: flex-start; }
+    .actions { margin-top: 28px; display: flex; justify-content: flex-start; }
     .btn {
       font-family: inherit;
       font-size: 1rem;
@@ -79,25 +75,33 @@
       color: #fff;
       background: var(--primary);
       border: 0;
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 12px 28px;
       cursor: pointer;
       transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
     }
     .btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .intro {
+      margin: 0 0 28px 0;
+      max-width: 600px;
+      font-size: 1.1rem;
+      font-weight: 400;
+      line-height: 1.65;
+    }
 
     .question {
       margin: 0 0 20px 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      line-height: 1.4;
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.3;
       text-align: left;
     }
 
     .game-container {
       display: flex;
-      gap: 32px;
+      gap: 24px;
       width: 100%;
       max-width: 600px;
       justify-content: flex-start;
@@ -111,17 +115,37 @@
     }
 
     .card {
-      padding: 16px;
-      background: white;
-      border: 2px solid var(--border);
-      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
       cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
       font-family: inherit;
-      font-weight: 500;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.35;
+      text-align: left;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .badge {
+      flex: none;
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      background: var(--badge);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: background 0.2s ease;
     }
 
     .card:hover:not(.matched) {
@@ -131,10 +155,9 @@
 
     .card.selected {
       border-color: var(--primary);
-      background: var(--bg-selected);
-      color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.18);
     }
+    .card.selected .badge { background: var(--primary); }
 
     .card.matched {
       background: var(--success-bg);
@@ -144,6 +167,7 @@
       transform: none;
       animation: pop 0.3s ease-out;
     }
+    .card.matched .badge { background: #16a34a; }
 
     #status-msg {
       margin-top: 24px;
@@ -153,11 +177,11 @@
       min-height: 24px;
     }
 
-    .success-text { color: var(--success); }
+    .success-text { color: #16a34a; }
 
     @keyframes pop {
       0%   { transform: scale(1); }
-      50%  { transform: scale(1.04); }
+      50%  { transform: scale(1.03); }
       100% { transform: scale(1); }
     }
   </style>
@@ -167,12 +191,11 @@
 
     <section id="step-a" class="step">
       <div id="mount-a" class="tally-mount"></div>
-      <div class="actions">
-        <button id="next-a" class="btn" type="button">Next</button>
-      </div>
     </section>
 
     <section id="step-game" class="step" hidden>
+      <p class="intro">Okay, let's try something interactive! Tell us what suits you best.</p>
+
       <p id="question" class="question" hidden></p>
 
       <div class="game-container">
@@ -328,6 +351,23 @@
     let selectedRight = null;
     let matchesCount = 0;
 
+    function buildCard(text, badgeText, side) {
+      const div = document.createElement('div');
+      div.className = 'card';
+
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = badgeText;
+
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = text;
+
+      div.append(badge, label);
+      div.onclick = () => selectCard(div, side, text);
+      return div;
+    }
+
     function initGame() {
       const leftCol = document.getElementById('left-col');
       const rightCol = document.getElementById('right-col');
@@ -335,20 +375,12 @@
       const shuffledLeft = [...pairs].sort(() => Math.random() - 0.5);
       const shuffledRight = [...pairs].sort(() => Math.random() - 0.5);
 
-      shuffledLeft.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.textContent = p.left;
-        div.onclick = () => selectCard(div, 'left', p.left);
-        leftCol.appendChild(div);
+      shuffledLeft.forEach((p, i) => {
+        leftCol.appendChild(buildCard(p.left, String(i + 1), 'left'));
       });
 
-      shuffledRight.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.textContent = p.right;
-        div.onclick = () => selectCard(div, 'right', p.right);
-        rightCol.appendChild(div);
+      shuffledRight.forEach((p, i) => {
+        rightCol.appendChild(buildCard(p.right, String.fromCharCode(65 + i), 'right'));
       });
     }
 
