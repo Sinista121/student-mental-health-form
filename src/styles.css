@@ -1,6 +1,98 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-page: #fffced;
+  --color-ink: #1a1a1a;
+  --color-muted: #6b7280;
+  --color-primary: #1a1a1a;
+  --color-primary-hover: #333333;
+  --color-badge: #4a4a4a;
+  --color-line: #dcdcd6;
+  --color-success: #16a34a;
+
+  --font-sans: "Figtree", system-ui, -apple-system, sans-serif;
+
+  --container-content: 700px;
+
+  --animate-pop: pop 0.3s ease-out;
+  @keyframes pop {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.btn-dark,
+.btn-light {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
+}
+.btn-dark {
+  color: #fff;
+  background: var(--color-primary);
+  border: 0;
+}
+.btn-light {
+  color: var(--color-ink);
+  background: #fff;
+  border: 1px solid var(--color-line);
+}
+.btn-dark:enabled:hover {
+  background: var(--color-primary-hover);
+}
+.btn-light:enabled:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.btn-dark:disabled,
+.btn-light:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.step-btn {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-family: inherit;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.step-btn:enabled:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
 
 /* Level slider: sequential (light -> dark) fill so intensity is visible at a glance */
 .lvl {
@@ -16,12 +108,12 @@
     to right,
     var(--c, #1a1a1a) 0,
     var(--c, #1a1a1a) var(--p, 50%),
-    #e5e7eb var(--p, 50%),
-    #e5e7eb 100%
+    var(--color-gray-200) var(--p, 50%),
+    var(--color-gray-200) 100%
   );
 }
 .lvl.untouched {
-  background: #e5e7eb;
+  background: var(--color-gray-200);
 }
 .lvl::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -41,11 +133,11 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 .lvl.untouched::-webkit-slider-thumb {
-  border-color: #9ca3af;
+  border-color: var(--color-gray-400);
   opacity: 0.75;
 }
 .lvl.untouched::-moz-range-thumb {
-  border-color: #9ca3af;
+  border-color: var(--color-gray-400);
   opacity: 0.75;
 }
 .lvl:focus-visible {

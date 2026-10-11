@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{ts,css}'],
+  content: ['./index.html', './src/**/*.{ts,svelte,css}'],
   corePlugins: { preflight: false },
   theme: {
     extend: {
