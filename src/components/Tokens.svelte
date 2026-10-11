@@ -59,7 +59,7 @@
   </span>
 </div>
 
-<div class="grid grid-cols-2 gap-3">
+<div class="grid md:grid-cols-2 gap-3">
   {#each labels as label, i (label)}
     <div class="panel py-3 px-3.5">
       <div class="flex items-center gap-1">
@@ -92,9 +92,7 @@
   {/each}
 </div>
 
-<!-- Overall severity: relative load alone can't tell a mildly from a highly stressed student. -->
 <div class="mt-6">
-  <p class="mt-0 mb-3 text-[14px] font-semibold text-muted">Overall</p>
   <SliderRow
     text={block.overall.text}
     labels={SCALES[block.overall.scale]}

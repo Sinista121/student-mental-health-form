@@ -44,7 +44,7 @@ export interface AnsweredResult {
   total: number;
 }
 
-export type Result = AnsweredResult
+export type Result = AnsweredResult;
 
 export interface Renderer {
   isComplete(): boolean;
@@ -77,7 +77,7 @@ export const SCALES: Record<ScaleKey, string[]> = {
   ],
 };
 
-export const SEQ = ["#bfdbfe", "#7fb2f5", "#4f8ef0", "#2563eb", "#1e3a8a"];
+export const SEQ = ["#fed7aa", "#fdba74", "#fb923c", "#ed7117", "#ea580c"];
 
 export const HINTS: Record<BlockType, string> = {
   match:
@@ -96,11 +96,6 @@ const FREQUENCY_TITLE =
 const AGREEMENT_TITLE =
   "Thinking about the past 2 weeks, how much do you agree with each statement?";
 
-// Components chosen to suit the content:
-//   tokens (1)   - relative stress load across situations
-//   swipe (2,3)  - quick yes/no symptom checklists
-//   slider (4-7) - ordered scales, one gesture per item
-//   match (8)    - categorical answers (coping strategies), where matching actually fits
 export const BLOCKS: Block[] = [
   {
     id: 1,
@@ -232,7 +227,3 @@ export const norm = (item: RawItem): Item =>
 
 export const sum = (values: number[]): number =>
   values.reduce((a, b) => a + b, 0);
-
-export const reduceMotion = (): boolean =>
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;

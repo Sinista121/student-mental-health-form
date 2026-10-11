@@ -20,6 +20,7 @@
           `${encodeURIComponent(k)}=${encodeURIComponent(all[k] as string)}`,
       )
       .join("&");
+
     return `https://tally.so/embed/${id}?${qs}`;
   }
 
@@ -38,17 +39,20 @@
           });
       }
     };
+
     if (w.Tally) return run();
 
     let s = document.querySelector<HTMLScriptElement>(
       "script[data-tally-embed]",
     );
+
     if (!s) {
       s = document.createElement("script");
       s.src = "https://tally.so/widgets/embed.js";
       s.dataset.tallyEmbed = "1";
       document.body.appendChild(s);
     }
+
     s.addEventListener("load", run);
     s.addEventListener("error", run);
   }
@@ -67,10 +71,16 @@
     title: string;
   } = $props();
 
-  const src = tallyUrl(formId, hidden);
-
   let loading = $state(true);
   let frame: HTMLIFrameElement | undefined = $state();
+  let srcUrl = $state("");
+
+  onMount(() => {
+    srcUrl = tallyUrl(formId, hidden);
+    const fallback = setTimeout(finish, 15000);
+    loadTallyEmbeds();
+    return () => clearTimeout(fallback);
+  });
 
   const finish = () => (loading = false);
 
@@ -78,12 +88,6 @@
     if (!frame?.getAttribute("src")) return;
     setTimeout(finish, REVEAL_DELAY_MS);
   }
-
-  onMount(() => {
-    const fallback = setTimeout(finish, 15000);
-    loadTallyEmbeds();
-    return () => clearTimeout(fallback);
-  });
 </script>
 
 <div
@@ -101,8 +105,8 @@
 
   <iframe
     bind:this={frame}
-    class="block w-full border-0 transition-opacity duration-[250ms] ease-[ease] group-[.is-loading]:absolute group-[.is-loading]:top-0 group-[.is-loading]:left-0 group-[.is-loading]:opacity-0 group-[.is-loading]:pointer-events-none"
-    data-tally-src={src}
+    class="block w-full border-0 transition-opacity duration-250 ease-[ease] group-[.is-loading]:absolute group-[.is-loading]:top-0 group-[.is-loading]:left-0 group-[.is-loading]:opacity-0 group-[.is-loading]:pointer-events-none"
+    data-tally-src={srcUrl}
     {title}
     width="100%"
     height="400"

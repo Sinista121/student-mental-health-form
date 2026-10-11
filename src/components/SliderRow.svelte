@@ -13,32 +13,27 @@
     touched?: boolean;
   } = $props();
 
-  // Internal smooth percent tracking (0 to 100)
   let smoothPercent = $state(value * 25);
 
-  // Sync internal percentage if the parent component updates the value externally
   $effect(() => {
     if (Math.round(smoothPercent / 25) !== value) {
       smoothPercent = value * 25;
     }
   });
 
-  // Derived discrete index (0 to 4) calculated in real-time during drag
   const activeIndex = $derived(
     Math.min(4, Math.max(0, Math.round(smoothPercent / 25))),
   );
   const color = $derived(SEQ[activeIndex]);
 
-  // Fires continuously while dragging
   function handleInput(e: Event & { currentTarget: HTMLInputElement }) {
     touched = true;
     smoothPercent = parseFloat(e.currentTarget.value);
-    value = activeIndex; // Real-time value update for text/parent
+    value = activeIndex;
   }
 
-  // Fires only when the user releases the mouse click/touch drag
   function handleRelease() {
-    smoothPercent = activeIndex * 25; // Snaps the visual thumb to the target tick
+    smoothPercent = activeIndex * 25;
   }
 </script>
 
@@ -59,18 +54,9 @@
   </div>
 
   <div
-    class="relative w-full h-2 mb-4 bg-gray-200 rounded-full flex justify-between items-center px-1"
+    class="relative w-full h-2 mb-2 bg-gray-200 rounded-full"
+    style="--thumb: 16px;"
   >
-    <!-- <div class="absolute z-50 grid grid-cols-5 w-full">
-      {#each Array(5) as _, i}
-        <div
-          class="w-2 h-1 rounded-full pointer-events-none transition-colors duration-200"
-          style:background-color={touched && activeIndex >= i
-            ? color
-            : "#9ca3af"}
-        ></div>
-      {/each}
-    </div> -->
     <input
       type="range"
       min="0"
@@ -87,6 +73,15 @@
       onpointerup={handleRelease}
       ontouchend={handleRelease}
     />
+    {#each Array(5) as _, i}
+      <div
+        class="absolute top-1/2 z-50 w-1 h-1 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none transition-colors duration-200"
+        style:left="calc(var(--thumb) / 2 + (100% - var(--thumb)) * {i / 4})"
+        style:background-color={touched && activeIndex >= i
+          ? "rgba(255,255,255,0.85)"
+          : "#9ca3af"}
+      ></div>
+    {/each}
   </div>
 
   <div

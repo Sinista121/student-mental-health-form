@@ -8,40 +8,35 @@
   import {
     BLOCKS,
     HINTS,
-    reduceMotion,
     type Block,
     type Renderer,
     type Result,
   } from "./questions";
+  import { onMount } from "svelte";
 
   const FORM_A_ID = "LZA1jG";
   const FORM_B_ID = "LZQlZv";
 
   const params = new URLSearchParams(window.location.search);
-
-  const requestedPage = parseInt(params.get("page") ?? "", 10);
-  let page = $state<1 | 2 | 3>(
-    requestedPage === 2 ? 2 : requestedPage === 3 ? 3 : 1,
-  );
+  const requestedPage = parseInt(params.get("page") ?? "");
+  let page = $state<number>(requestedPage || 1);
 
   const requestedBlocks = (params.get("blocks") ?? "")
     .split(",")
-    .map((s) => parseInt(s, 10))
+    .map((s) => parseInt(s))
     .filter((n) => !isNaN(n));
+
   const chosenBlocks = BLOCKS.filter((b) => requestedBlocks.includes(b.id));
   const ACTIVE_BLOCKS: Block[] = chosenBlocks.length ? chosenBlocks : BLOCKS;
   const total = ACTIVE_BLOCKS.length;
 
-  const respondentId =
-    (params.get("respondentId") ?? "").trim() ||
-    (window.crypto && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : String(Date.now()) + Math.random().toString(16).slice(2));
+  let respondentId = sessionStorage.getItem("resid") ?? crypto.randomUUID();
+  sessionStorage.setItem("resid", respondentId);
 
   const results: Record<number, Result> = {};
   let gameResult = "";
   let qIndex = $state(0);
-  let comp = $state.raw<Renderer | undefined>(); // the section component currently on screen
+  let comp = $state.raw<Renderer | undefined>();
 
   const block = $derived(ACTIVE_BLOCKS[qIndex]);
   const complete = $derived(comp?.isComplete() ?? false);
@@ -50,7 +45,8 @@
       ? "All answered! Press Next to continue."
       : (comp?.statusText() ?? ""),
   );
-  const enterDuration = reduceMotion() ? 0 : 250;
+
+  const enterDuration = 250;
 
   function formatScores(): string {
     return ACTIVE_BLOCKS.filter((b) => b.scored && results[b.id])
@@ -76,10 +72,12 @@
       gameResult,
       scores: formatScores(),
     };
+
     ACTIVE_BLOCKS.forEach((b) => {
       const r = results[b.id];
       if (r) hidden[`q${b.id}`] = r.letters.join(",");
     });
+
     return hidden;
   }
 
@@ -100,7 +98,7 @@
   }
 </script>
 
-{#if page === 1}
+{#if page === 1 && respondentId}
   <TallyEmbed formId={FORM_A_ID} hidden={{ respondentId }} title="Form A" />
 {:else if page === 2}
   <section class="pt-7">
