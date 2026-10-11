@@ -117,7 +117,6 @@
   export function result(): AnsweredResult {
     const scores = scoreOf();
     return {
-      skipped: false,
       letters: ans.map((v) => (v === 1 ? "Y" : "N")),
       scores,
       total: sum(scores),

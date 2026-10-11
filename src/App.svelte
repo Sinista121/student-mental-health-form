@@ -56,9 +56,7 @@
     return ACTIVE_BLOCKS.filter((b) => b.scored && results[b.id])
       .map((b) => {
         const r = results[b.id];
-        return r.skipped
-          ? `B${b.id}=skipped`
-          : `B${b.id}=${r.total}(${r.scores.join(",")})`;
+        return `B${b.id}=${r.total}(${r.scores.join(",")})`;
       })
       .join(";");
   }
@@ -67,7 +65,7 @@
     return ACTIVE_BLOCKS.filter((b) => results[b.id])
       .map((b) => {
         const r = results[b.id];
-        return `B${b.id}:${r.skipped ? "skipped" : r.letters.join(",")}`;
+        return `B${b.id}:${r.letters.join(",")}`;
       })
       .join("|");
   }
@@ -80,7 +78,7 @@
     };
     ACTIVE_BLOCKS.forEach((b) => {
       const r = results[b.id];
-      if (r) hidden[`q${b.id}`] = r.skipped ? "skipped" : r.letters.join(",");
+      if (r) hidden[`q${b.id}`] = r.letters.join(",");
     });
     return hidden;
   }
@@ -100,11 +98,6 @@
     results[block.id] = comp.result();
     advance();
   }
-
-  function skip() {
-    results[block.id] = { skipped: true };
-    advance();
-  }
 </script>
 
 {#if page === 1}
@@ -112,8 +105,8 @@
 {:else if page === 2}
   <section class="pt-7">
     {#if qIndex === 0}
-      <p class="mt-0 mb-2.5 text-[24px] font-bold leading-[1.65]">
-        Okay, let's try something interactive! Tell us what suits you best.
+      <p class="mt-0 mb-2.5 text-[24px] font-black leading-[1.65]">
+        Let's get interactive!
       </p>
     {/if}
 
@@ -134,11 +127,11 @@
     {#key qIndex}
       <div in:fly={{ y: 12, duration: enterDuration }}>
         {#if block.title}
-          <p class="mt-0 mb-2 text-[24px] font-bold leading-[1.3]">
+          <p class="mt-0 mb-2 text-[18px] font-bold leading-[1.3]">
             {block.title}
           </p>
         {/if}
-        <p class="mt-0 mb-5 text-[16px] leading-[1.5]">{HINTS[block.type]}</p>
+        <p class="mt-0 mb-5 text-[16px] leading-normal">{HINTS[block.type]}</p>
 
         <div class="w-full">
           {#if block.type === "tokens"}
@@ -167,18 +160,13 @@
     <div class="mt-7 flex justify-start gap-3">
       <button
         type="button"
-        class="text-[1rem] font-semibold text-white bg-primary border-0 rounded-lg py-3 px-7 cursor-pointer [transition:background_0.2s_ease,transform_0.2s_ease,opacity_0.2s_ease] enabled:hover:bg-primary-hover enabled:hover:-translate-y-px disabled:opacity-[0.35] disabled:cursor-not-allowed"
+        class="text-[16px] font-black text-white bg-primary border-0 rounded-lg py-3 px-7 cursor-pointer [transition:background_0.2s_ease,transform_0.2s_ease,opacity_0.2s_ease] enabled:hover:bg-primary-hover enabled:hover:-translate-y-px disabled:opacity-[0.35] disabled:cursor-not-allowed"
         disabled={!complete}
         onclick={next}>Next</button
       >
-      <button
-        type="button"
-        class="text-[1rem] font-semibold text-ink bg-transparent border border-solid border-line rounded-lg py-3 px-7 cursor-pointer [transition:background_0.2s_ease,transform_0.2s_ease] hover:bg-black/5 hover:-translate-y-px"
-        onclick={skip}>Skip</button
-      >
     </div>
 
-    <p class="mt-8 mb-0 text-[14px] leading-[1.5] text-muted">
+    <p class="mt-8 mb-0 text-[14px] leading-normal text-muted">
       This survey is for insight only and is not a diagnosis. If you're finding
       things hard, please talk to someone you trust or your university's
       counselling service.

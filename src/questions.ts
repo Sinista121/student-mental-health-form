@@ -39,16 +39,12 @@ export interface MatchBlock extends BlockBase {
 export type Block = SliderBlock | SwipeBlock | TokensBlock | MatchBlock;
 
 export interface AnsweredResult {
-  skipped: false;
   letters: string[];
   scores: number[];
   total: number;
 }
 
-export interface SkippedResult {
-  skipped: true;
-}
-export type Result = AnsweredResult | SkippedResult;
+export type Result = AnsweredResult
 
 export interface Renderer {
   isComplete(): boolean;

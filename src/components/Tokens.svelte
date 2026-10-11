@@ -41,10 +41,9 @@
 
   export function result(): AnsweredResult {
     return {
-      skipped: false,
       letters: [...counts.map(String), `S${letter(overall)}`],
       scores: [...counts, overall],
-      total: overall, // total = overall severity (0-4); token counts are relative shares
+      total: overall,
     };
   }
 </script>
@@ -60,11 +59,11 @@
   </span>
 </div>
 
-<div class="flex flex-col gap-3">
+<div class="grid grid-cols-2 gap-3">
   {#each labels as label, i (label)}
     <div class="panel py-3 px-3.5">
-      <div class="flex items-center gap-3">
-        <span class="flex-1 min-w-0 text-[1rem] leading-[1.35]">{label}</span>
+      <div class="flex items-center gap-1">
+        <span class="flex-1 min-w-0 text-sm leading-[1.35]">{label}</span>
         <button
           type="button"
           class="step-btn"
@@ -72,7 +71,7 @@
           disabled={counts[i] === 0}
           onclick={() => remove(i)}>−</button
         >
-        <span class="w-7 text-center text-[1.1rem] font-bold tabular-nums"
+        <span class="w-7 text-center text-sm font-bold tabular-nums"
           >{counts[i]}</span
         >
         <button

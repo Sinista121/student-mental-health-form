@@ -30,7 +30,6 @@
   export function result(): AnsweredResult {
     const scores = values.map((v, i) => (items[i].reverse ? 4 - v : v));
     return {
-      skipped: false,
       letters: values.map(letter),
       scores,
       total: sum(scores),

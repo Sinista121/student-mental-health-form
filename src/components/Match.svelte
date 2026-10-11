@@ -86,7 +86,6 @@
       ? picks.map((p, i) => (items[i].reverse ? max - p : p))
       : [];
     return {
-      skipped: false,
       letters: picks.map(letter),
       scores,
       total: sum(scores),
