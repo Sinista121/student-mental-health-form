@@ -48,6 +48,57 @@
 
   const enterDuration = 250;
 
+  // ---- Form A answers (captured from Tally's submit event) ----------------
+  type FormA = { overwhelmed: number | null; wellbeing: number | null };
+
+  function loadFormA(): FormA {
+    try {
+      return JSON.parse(sessionStorage.getItem("formA") ?? "") as FormA;
+    } catch {
+      return { overwhelmed: null, wellbeing: null };
+    }
+  }
+
+  // kept in sessionStorage so it survives a Tally redirect / page reload
+  let formA: FormA = loadFormA();
+
+  function toNumber(v: unknown): number | null {
+    const n = Number(Array.isArray(v) ? v[0] : v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function handleTally(e: MessageEvent) {
+    if (e.origin !== "https://tally.so" || typeof e.data !== "string") return;
+    if (!e.data.includes("Tally.FormSubmitted")) return;
+
+    let payload: any;
+    try {
+      payload = JSON.parse(e.data).payload;
+    } catch {
+      return;
+    }
+
+    // First time through, check the real shape of the payload:
+    console.log(payload);
+    sessionStorage.setItem("TEST", JSON.stringify(payload));
+
+    const fields: any[] = payload?.fields ?? [];
+    const byLabel = (needle: string) =>
+      fields.find((f) => String(f.label ?? f.title ?? "").toLowerCase().includes(needle));
+
+    formA = {
+      overwhelmed: toNumber(byLabel("overwhelmed")?.value),
+      wellbeing: toNumber(byLabel("well-being")?.value),
+    };
+    sessionStorage.setItem("formA", JSON.stringify(formA));
+
+    // Go straight to the interactive section (harmless if Tally also redirects)
+    if (page === 1) {
+      page = 2;
+      window.scrollTo(0, 0);
+    }
+  }
+
   function formatScores(): string {
     return ACTIVE_BLOCKS.filter((b) => b.scored && results[b.id])
       .map((b) => {
@@ -71,6 +122,9 @@
       respondentId,
       gameResult,
       scores: formatScores(),
+      // add matching hidden fields in Tally form B for these two
+      formA_overwhelmed: String(formA.overwhelmed ?? ""),
+      formA_wellbeing: String(formA.wellbeing ?? ""),
     };
 
     ACTIVE_BLOCKS.forEach((b) => {
@@ -97,6 +151,8 @@
     advance();
   }
 </script>
+
+<svelte:window onmessage={handleTally} />
 
 {#if page === 1 && respondentId}
   <TallyEmbed formId={FORM_A_ID} hidden={{ respondentId }} title="Form A" />
